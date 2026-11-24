@@ -19,4 +19,4 @@ are reserved in all cases.
 
 Hovhannisyan, G. R. (2026). *Armenian Onomastic Ecology (AOE)* [research platform: website, datasets and software]. https://hovgaya.github.io/
 
-Contact: gayane.hovhannisyan@armheritage.am
+Contact: gayanehovhannisyan65@gmail.com
