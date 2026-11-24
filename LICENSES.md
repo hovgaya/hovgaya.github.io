@@ -6,7 +6,7 @@ Armenian Onomastic Ecology (AOE), founded and directed by Gayane R. Hovhannisyan
 | Part | Licence | Notes |
 |---|---|---|
 | Name "Armenian Onomastic Ecology (AOE)", concept presentation, website texts, design and maps as works | © Gayane R. Hovhannisyan, all rights reserved | Quotation with attribution is welcome; other reuse by written permission |
-| Software (tools/, code in index.html and chronotope.html) | MIT (see LICENSE) | |
+| Software (code in index.html and chronotope.html) | © Gayane R. Hovhannisyan, all rights reserved (see LICENSE) | No reuse without written permission; embedded third-party libraries (d3, topojson-client) keep their ISC licences |
 | Derived datasets D1–D12, D14–D16 and their tables | CC BY 4.0 | Credit: "Hovhannisyan, G. R. (2026). Armenian Onomastic Ecology (AOE)" |
 | D13 (derived from Onomastikon) | CC BY-SA 4.0 | Share-alike required by the source |
 | Epigraphic datasets S1–S15 derived from ArtsakhEpiC | CC BY-NC 4.0 | Non-commercial required by the source |
