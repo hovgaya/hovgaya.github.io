@@ -1,0 +1,11 @@
+# Private working tools: they run locally but are never committed or published.
+tools/
+*_backup*
+*.bak
+*.tmp
+_tmp*
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+desktop.ini

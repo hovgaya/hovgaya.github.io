@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use the Armenian Onomastic Ecology (AOE), please cite it as below."
+title: "Armenian Onomastic Ecology (AOE)"
+type: dataset
+authors:
+  - family-names: Hovhannisyan
+    given-names: Gayane R.
+    orcid: "https://orcid.org/0000-0002-3480-3755"
+    email: gayane.hovhannisyan@armheritage.am
+date-released: 2026-11-23
+url: "https://hovgaya.github.io/"
+keywords:
+  - onomastics
+  - Armenian names
+  - diaspora
+  - toponymy
+  - names in contact
+license: CC-BY-4.0

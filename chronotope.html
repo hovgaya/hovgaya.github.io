@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Armenian Toponymic Chronotope, 3026 BC – AD 2026 (prototype)</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--ink:#1f2328;--muted:#5b6470;--line:#d8dce1;--bg:#fbfaf7;--acc:#7a2e1e}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font:14px/1.45 Georgia,"Times New Roman",serif;color:var(--ink);background:var(--bg)}
+#wrap{display:grid;grid-template-columns:1fr 330px;grid-template-rows:auto 1fr auto;height:100vh}
+header{grid-column:1/3;padding:8px 14px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+header h1{font-size:17px;margin:0;font-weight:600}
+header small{color:var(--muted)}
+#map{grid-row:2;grid-column:1}
+aside{grid-row:2/4;grid-column:2;border-left:1px solid var(--line);overflow:auto;padding:10px 12px;font-size:13px}
+aside h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px}
+#ctrl{grid-row:3;grid-column:1;border-top:1px solid var(--line);padding:8px 14px}
+#yearrow{display:flex;align-items:center;gap:12px}
+#year{font-size:26px;font-weight:600;min-width:150px;color:var(--acc);font-variant-numeric:tabular-nums}
+button,select{font:inherit;padding:3px 10px;border:1px solid var(--line);background:#fff;border-radius:4px;cursor:pointer}
+#scrub{width:100%;margin:4px 0 0}
+#hist{width:100%;height:34px;display:block}
+.lg{display:flex;align-items:center;gap:6px;margin:2px 0;cursor:pointer}
+.sw{width:11px;height:11px;border-radius:50%;flex:none;border:1px solid #0003}
+.lg .n{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
+.off{opacity:.35}
+#active div{padding:2px 0;border-bottom:1px dotted var(--line);cursor:pointer}
+#active div:hover{background:#f1ede4}
+#active .l{color:var(--muted);font-size:12px}
+.note{color:var(--muted);font-size:12px}
+.leaflet-tooltip.spark{background:#fffdf6;border-color:var(--acc);font:12px Georgia,serif;padding:1px 5px}
+.pop b{font-size:15px}.pop .m{color:var(--muted)}
+details summary{cursor:pointer;color:var(--muted)}
+ol.src{padding-left:18px;margin:4px 0}ol.src li{margin:3px 0}
+</style>
+</head>
+<body>
+<div id="wrap">
+<header>
+  <a href="index.html" style="color:var(--muted);font-size:13px;text-decoration:none">← Armenian Onomastic Ecology</a>
+  <h1>Armenian toponymic chronotope, 3026 BC – AD 2026</h1>
+  <small>Prototype · place-names appear when first recorded and fade after their last record · 3 s per decade at ×1</small>
+</header>
+<div id="map"></div>
+<div id="ctrl">
+  <div id="yearrow">
+    <button id="back" title="One decade back (←)">◀ 10</button><button id="play" title="Play / pause (space)">▶ Play</button><button id="stop" title="Stop here and look closer">■ Stop</button><button id="fwd" title="One decade forward (→)">10 ▶</button><button id="restart" title="Back to 3026 BC">⟲</button>
+    <span id="year"></span>
+    <label>Speed <select id="speed">
+      <option value="1">×1 (one decade every 3 s)</option><option value="2">×2</option><option value="5">×5</option>
+      <option value="10">×10</option><option value="30">×30</option></select></label>
+    <label><input type="checkbox" id="skip" checked> skip empty decades</label>
+    <span id="count" class="note"></span>
+  </div>
+  <div id="country" class="note" style="margin:4px 0 2px"></div>
+  <canvas id="hist"></canvas>
+  <input type="range" id="scrub" min="-3026" max="2026" step="1" value="-3026">
+</div>
+<aside>
+  <h2>Name forms</h2><div id="langs"></div>
+  <h2>Name status (Bitlis province, D17)</h2>
+  <div class="note"><div class="lg"><span class="sw" style="background:#ff1493"></span>Name lost: not found in any current gazetteer; Armenian use ends 1915</div>
+  <div class="lg"><span class="sw" style="background:#f5c400"></span>Name replaced: village located, but renamed; Armenian use ends 1915</div>
+  <div class="lg"><span class="sw" style="background:#7a2e1e"></span>Name continues in today's (Turkish) form</div></div>
+  <h2>Sources (layers)</h2><div id="layers"></div>
+  <h2>Names in use this decade</h2><div id="active" class="note"></div>
+  <h2>How to read the map</h2>
+  <p class="note">The map moves in steps: one decade every 3 seconds at ×1. <b>■ Stop</b> (or Esc) freezes the map so you can zoom in and open points; <b>◀ 10</b> and <b>10 ▶</b> (or the arrow keys) step one decade back or forward; the space bar plays and pauses. Click a point to see <i>the name string at this place</i>: every recorded form there, each on its own time bar. When a new name replaces an older one at the same place, its label reads "old → new".</p>
+  <p class="note">Each point is one recorded name form at one place. It fades in over 20 years before its first record, stays while it is recorded, and fades out over 40 years after its last record. Points grow with the number of names recorded together at the same place: a centre with many names is a centre with a long and many-voiced record. Only Armenian-language name forms are shown. Records of the same places in other languages (Greek, Latin, Akkadian, Persian, Ottoman and modern Turkish, English and others) are not part of this map; they are kept for reference in <a href="data/chronotope_excluded_non_armenian_forms.csv">a separate file</a>. Grey points before AD 405 are places on record whose Armenian name is known only from later sources.</p>
+  <p class="note"><b>Territory.</b> The map covers the Armenian Highland, Lesser Armenia/Sophene and Cilicia. Places of neighbouring lands that fall inside these frames are left out: Kartli and eastern Georgia beyond Javakhk and Lori-Tashir (e.g. Tbilisi), the lands north of the Kura, and Atropatene south of the Araxes (e.g. Tabriz, Ardabil). The 100 excluded records are listed in <a href="data/chronotope_excluded_outside_armenia.csv">a separate file</a>, so the exclusion can be checked and revised.</p>
+  <p class="note">Dates are as precise as their sources: Pleiades assigns many names to broad periods (e.g. "Roman", 30 BC – AD 300), and sometimes extends a modern name over the whole life of a site; such names are not shown before the earliest record of their language (e.g. Turkish forms not before 1900, Ottoman before 1300, Arabic before 630, Armenian before 405); Wikidata foundation dates mark the first record of a place; before AD 405 such places are drawn in grey as sites on record, with the modern Armenian label for orientation only. This is a prototype for verification, kept separate from the epigraphic datasets of the article.</p>
+  <h2>Sources</h2>
+  <ol class="src note">
+    <li>Pleiades: A Gazetteer of Past Places. Bagnall, R., Talbert, R., Elliott, T., et al. (eds.). Institute for the Study of the Ancient World, NYU. <a href="https://pleiades.stoa.org" target="_blank">pleiades.stoa.org</a>. CC BY 3.0. Data dump retrieved 22 Nov 2026; per-name references (Barrington Atlas, Itineraria, etc.) in each popup.</li>
+    <li>Gadd, S. (2026). <i>Gazetteer of the World → Linked Data</i>, v1.0.0. World Historical Gazetteer, from <i>A Gazetteer of the World</i>, 7 vols. Edinburgh: A. Fullarton &amp; Co., 1856 (public domain). <a href="https://worldhistoricalgazetteer.github.io/gazetteer-of-the-world/" target="_blank">site</a>. AOE selection D15.</li>
+    <li>Wikidata, inception (P571) and dissolution (P576) of places with Armenian labels. CC0. Query of 22 Nov 2026.</li>
+    <li>GeoNames, populated places of the Republic of Armenia with Armenian-script names. CC BY 4.0. <a href="https://www.geonames.org" target="_blank">geonames.org</a>, retrieved 22 Nov 2026.</li>
+    <li>Badalyan, G. M. (2016). Արևմտյան Հայաստանի պատմաժողովրդագրական նկարագիրը Մեծ Եղեռնի նախօրեին. Հավելված, մաս 6. Բիթլիսի նահանգի հյուսիսային, արևելյան և արևմտյան գավառները. <i>Վէմ</i> 8 (14), no. 3 (55): I–XXXVI: Armenian settlements of Bulanukh, Manazkert, Vardo, Khlat, Genj and Chapaghjur, 1912–1914 (AOE dataset D17; located with GeoNames).</li>
+    <li>Onomastikon: A Digital Atlas of Ancient Names, S. Rajagopal, <a href="https://onomastikon.org/civilizations/armenia" target="_blank">onomastikon.org</a>, accessed 22 Nov 2026, CC BY-SA 4.0: the names of Armenia in the line above the timeline (AOE dataset D13), each with its primary reference on hover.</li>
+    <li>Basemap: World Shaded Relief, © Esri; sources Esri, USGS, NOAA. No modern place labels or borders are drawn.</li>
+  </ol>
+  <p class="note"><b>Armenian Onomastic Ecology (AOE)</b>, founded and directed by Gayane R. Hovhannisyan (ORCID 0000-0002-3480-3755). © 2026 Gayane R. Hovhannisyan; data CC BY 4.0 unless stated, software MIT (<a href="LICENSES.md">licences</a>). Part of the <a href="index.html">Armenian Onomastic Ecology</a>. Data table: <a href="data/chronotope_names.csv">chronotope_names.csv</a> (AOE dataset D16).</p>
+</aside>
+</div>
+<script>
+const PAL={"Hurro-Urartian":"#b2182b","Hittite":"#d6604d","Akkadian":"#8c510a","Sumerian":"#8c510a","Aramaic":"#bf812d","Syriac":"#bf812d",
+ "Old Persian":"#35978f","Persian":"#35978f","Middle Persian":"#35978f","Greek":"#2166ac","Latin":"#4393c3","Greek/Latin (Barrington Atlas)":"#6aa7d6",
+ "Armenian":"#7a2e1e","Georgian":"#762a83","Arabic":"#1b7837","Ottoman Turkish":"#5aae61","Turkish":"#a6dba0","Kurdish":"#e08214",
+ "Russian":"#542788","Site on record (modern label shown)":"#b9b4ab","Azerbaijani":"#80cdc1","English (1856 gazetteer)":"#444","English/modern":"#999"};
+const COUNTRY_ALL=[["𒌑𒊏𒀸𒌅", "Uraštu", "Akkadian", -520, -330, "attested", "von Voigtländer, Elizabeth N. The Bisitun Inscription of Darius the Great: Babylonian Version. London: Lund Humphries, 1978.", "https://onomastikon.org/civilizations/armenia#akkadian-urashtu"], ["Ἀρμενία", "Armenía", "Greek", -500, 400, "attested", "Herodotus, Histories 1.180, 3.93, 5.49, 7.73.", "https://onomastikon.org/civilizations/armenia#ancient-greek-armenia"], ["תּוֹגַרְמָה", "Tōgarmāh", "Biblical Hebrew", -550, -300, "disputed", "Genesis 10:3; Ezekiel 27:14, 38:6.", "https://onomastikon.org/civilizations/armenia#biblical-hebrew-togarmah"], ["τὸ Ἀρμενιακόν", "to Armeniakón", "Byzantine Greek", 660, 1075, "attested", "Constantine VII Porphyrogennetos. De Thematibus. 10th century.", "https://onomastikon.org/civilizations/armenia#byzantine-greek-armeniakon"], ["أرمينية", "Armīniya", "Arabic", 640, 1453, "attested", "al-Balādhurī. Futūḥ al-Buldān. 9th century; trans. Hitti, Philip K. The Origins of the Islamic State. New York: Columbia University Press, 1916.", "https://onomastikon.org/civilizations/armenia#classical-arabic-arminiya"], ["Հայք", "Haykʿ", "Armenian", 405, 2026, "attested", "Movsēs Xorenacʿi, Patmutʿiwn Hayocʿ (History of the Armenians) 1.10–12.", "https://onomastikon.org/civilizations/armenia#classical-armenian-hayk"], ["𒄯𒈪𒉡𒅀", "Harminuya", "Elamite", -520, -330, "attested", "Kent, Roland G. Old Persian: Grammar, Texts, Lexicon. 2nd ed. New Haven: American Oriental Society, 1950, s.v. Arminiya- (Elam. har-mi-nu-ia).", "https://onomastikon.org/civilizations/armenia#elamite-harminuya"], ["Armenia", "Armenia", "Latin", -100, 500, "attested", "Tacitus, Annales 2.56.", "https://onomastikon.org/civilizations/armenia#latin-armenia"], ["𐭠𐭫𐭬𐭭𐭩", "Armin", "Middle Persian", 262, 650, "attested", "Huyse, Philip. Die dreisprachige Inschrift Šābuhrs I. an der Kaʿba-i Zardušt (ŠKZ). Corpus Inscriptionum Iranicarum III/1. London: SOAS, 1999.", "https://onomastikon.org/civilizations/armenia#middle-persian-armin"], ["𐎠𐎼𐎷𐎡𐎴", "Armina", "Old Persian", -520, -330, "attested", "Kent, Roland G. Old Persian: Grammar, Texts, Lexicon. New Haven: American Oriental Society, 1953, s.v. Armina-.", "https://onomastikon.org/civilizations/armenia#old-persian-armina"], ["𐭀𐭓𐭌𐭍𐭉", "Armin", "Parthian", 262, 300, "attested", "Huyse, Philip. Die dreisprachige Inschrift Šābuhrs I. an der Kaʿba-i Zardušt (ŠKZ). Corpus Inscriptionum Iranicarum III/1. London: SOAS, 1999.", "https://onomastikon.org/civilizations/armenia#parthian-armin"]];
+const STC={continues:'#7a2e1e',replaced:'#f5c400',lost:'#ff1493'};
+const span=(s,e)=>e>=2026?`since ${fmt(s)}`:s===e?`${fmt(s)}`:`${fmt(s)} – ${fmt(e)}`;
+const COUNTRY=COUNTRY_ALL.filter(c=>c[2]==='Armenian');
+const fmt=y=>y<0?`${-y} BC`:`AD ${y}`;
+const Y0=-3026,Y1=2026,FIN=20,FOUT=40;
+const map=L.map('map',{preferCanvas:true,zoomSnap:.5}).setView([39.3,42.2],6);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',{attribution:'Relief: Esri, USGS, NOAA',maxZoom:13}).addTo(map);
+const rend=L.canvas({padding:.3});
+let D,items=[],year=Y0,playing=false,speed=1,langOn={},layOn={},last=performance.now();
+fetch('data/chronotope.json').then(r=>r.json()).then(d=>{D=d;init()});
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function init(){
+  // group names at the same place to size centres
+  const grp={};
+  D.n.forEach((r,i)=>{const [lon,lat,form,rom,li,s,e,ly,src,uri,title,prec]=r;
+    const k=lon.toFixed(2)+','+lat.toFixed(2);(grp[k]=grp[k]||[]).push(i);
+    const lang=D.langs[li],fo=r[12]??FOUT,st=r[13]||'',it={i,lon,lat,form,rom,lang,s,e:r[14]?e:Math.max(e,s+15),e0:e,fo,st,ly,src,uri,title,prec,k,op:0,on:false,lab:false};
+    it.m=L.circleMarker([lat,lon],{renderer:rend,radius:4,weight:.6,color:'#0006',fillColor:STC[st]||PAL[lang]||'#777',fillOpacity:0,opacity:0});
+    it.m.bindPopup(()=>`<div class="pop"><b>${esc(form)}</b>${rom?` <span class="m">(${esc(rom)})</span>`:''}<br>
+      ${st?`<span style="color:${STC[st]};font-weight:600">${st==='lost'?'Name lost':st==='replaced'?'Name replaced':'Name continues'}</span><br>`:''}<span style="font-weight:600">In use ${span(s,e)}</span> <span class="m">· ${esc(lang)}</span><br>Place: ${esc(title)}<br>
+      <span class="m">Date basis: ${esc(prec)}</span><br><span class="m">Source: ${esc(src)}</span><br>
+      ${uri?`<a href="${esc(uri)}" target="_blank" rel="noopener">record ↗</a>`:''}${chainHTML(items[i])}</div>`,{maxWidth:520,minWidth:470,maxHeight:420});
+    it.hov=()=>it.m.bindTooltip(()=>`${esc(form)} · ${span(s,e)}`,{sticky:true}); it.hov();
+    items.push(it)});
+  items.forEach(it=>it.grp=grp[it.k]);
+  const pl={};items.forEach(it=>{const k=it.lon.toFixed(2)+','+it.lat.toFixed(2);(pl[k]=pl[k]||[]).push(it)});
+  items.forEach(it=>{it.chain=pl[it.lon.toFixed(2)+','+it.lat.toFixed(2)].slice().sort((a,b)=>a.s-b.s||a.e0-b.e0);
+    it.prev=it.chain.filter(o=>o!==it&&o.s<it.s&&o.form!==it.form).pop()||null});
+  D.langs.forEach(l=>langOn[l]=true);D.layers.forEach(l=>layOn[l]=true);
+  legend();hist();set(Y0);
+  requestAnimationFrame(loop);
+}
+function legend(){
+  const cnt={};items.forEach(it=>cnt[it.lang]=(cnt[it.lang]||0)+1);
+  const order=Object.keys(PAL).filter(l=>cnt[l]).concat(D.langs.filter(l=>!PAL[l]));
+  document.getElementById('langs').innerHTML=order.map(l=>`<div class="lg" data-l="${esc(l)}"><span class="sw" style="background:${PAL[l]||'#777'}"></span>${esc(l)}<span class="n">${cnt[l]}</span></div>`).join('');
+  document.querySelectorAll('#langs .lg').forEach(e=>e.onclick=()=>{langOn[e.dataset.l]=!langOn[e.dataset.l];e.classList.toggle('off');update(true)});
+  const lc={};items.forEach(it=>lc[it.ly]=(lc[it.ly]||0)+1);
+  document.getElementById('layers').innerHTML=D.layers.map((l,i)=>`<label class="lg"><input type="checkbox" data-i="${i}" checked>${esc(l)}<span class="n">${lc[i]}</span></label>`).join('');
+  document.querySelectorAll('#layers input').forEach(e=>e.onchange=()=>{layOn[D.layers[e.dataset.i]]=e.checked;update(true)});
+}
+let dens;
+function hist(){
+  const c=document.getElementById('hist'),w=c.clientWidth,h=c.clientHeight;c.width=w*devicePixelRatio;c.height=h*devicePixelRatio;
+  const x=c.getContext('2d');x.scale(devicePixelRatio,devicePixelRatio);
+  const nb=(Y1-Y0)/10|0;dens=new Array(nb+1).fill(0);
+  items.forEach(it=>{for(let b=Math.max(0,(it.s-FIN-Y0)/10|0);b<=Math.min(nb,(it.e+FOUT-Y0)/10|0);b++)dens[b]++});
+  const mx=Math.max(...dens);x.fillStyle='#c9b9a6';
+  dens.forEach((v,b)=>{const bh=v?Math.max(1,Math.sqrt(v/mx)*h):0;x.fillRect(b/nb*w,h-bh,Math.max(1,w/nb),bh)});
+  x.fillStyle='#7a2e1e';[-3000,-2000,-1000,0,1000,2000].forEach(y=>{const px=(y-Y0)/(Y1-Y0)*w;x.fillRect(px,0,1,h);x.font='10px Georgia';x.fillText(fmt(y).replace('AD 0','AD 1'),px+2,10)});
+}
+function chainHTML(it){
+  const c=it.chain; if(!c||c.length<2)return '';
+  const lo=Math.min(...c.map(o=>o.s)),hi=Math.max(...c.map(o=>Math.min(o.e0,2026)),lo+1),W=240,X=v=>(v-lo)/(hi-lo)*W;
+  const seen=new Set(),rows=c.filter(o=>{const k=o.form+'|'+o.s;if(seen.has(k))return false;seen.add(k);return true}).slice(0,14);
+  return `<div style="margin-top:6px;border-top:1px solid #ddd;padding-top:4px"><b style="font-size:12px">The name string at this place</b>`+
+   rows.map(o=>`<div style="display:flex;align-items:center;gap:6px;font-size:11.5px;${o===it?'font-weight:600':''}"><span style="flex:none;width:110px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(o.form)}</span><svg width="${W}" height="8" style="flex:none"><rect x="${X(o.s)}" y="1" width="${Math.max(2,X(Math.min(o.e0,2026))-X(o.s))}" height="6" rx="2" fill="${STC[o.st]||PAL[o.lang]||'#777'}"/>${year>=lo&&year<=hi?`<line x1="${X(year)}" x2="${X(year)}" y1="0" y2="8" stroke="#000"/>`:''}</svg><span style="color:#888;white-space:nowrap">${span(o.s,o.e0)}</span></div>`).join('')+
+   `<div style="font-size:11px;color:#888">${fmt(lo)} – ${fmt(hi)}; black line = year on screen</div></div>`;
+}
+function opac(it,y){
+  if(!langOn[it.lang]||!layOn[D.layers[it.ly]])return 0;
+  if(y<it.s-FIN||y>it.e+it.fo)return 0;
+  if(y<it.s)return (y-(it.s-FIN))/FIN;
+  if(y<=it.e)return 1;
+  return 1-(y-it.e)/it.fo;
+}
+function update(force){
+  const y=year,act=[],live={};
+  items.forEach(it=>{const o=opac(it,y);it.op=o;if(o>0)live[it.k]=(live[it.k]||0)+1});
+  items.forEach(it=>{const o=it.op;
+    if(o<=0){if(it.on){map.removeLayer(it.m);it.on=false}if(it.lab){it.m.unbindTooltip();it.lab=false;it.hov()}return}
+    if(!it.on){it.m.addTo(map);it.on=true}
+    const r=3+2.2*Math.sqrt(live[it.k]-1),fresh=y>=it.s-FIN&&y<it.s+30&&it.s>Y0+5;
+    it.m.setStyle({fillOpacity:.85*o,opacity:o,radius:fresh?r+3:r,weight:fresh?1.6:.6,color:fresh?'#7a2e1e':'#0006'});
+    if(o>=.6&&y>=it.s&&y<=it.e)act.push(it);
+    it.fresh=fresh&&o>.5&&it.ly!==D.layers.indexOf('GeoNames (current names, Republic of Armenia)');it.rr=r;
+  });
+  const cand=items.filter(it=>it.op>0&&it.fresh).sort((a,b)=>b.rr-a.rr||b.s-a.s).slice(0,14),labset=new Set(cand);
+  items.forEach(it=>{if(it.op<=0)return;const wantLab=labset.has(it);
+    if(wantLab&&!it.lab){it.m.unbindTooltip();it.m.bindTooltip((it.prev?`<span style="color:#888">${esc(it.prev.form.split(',')[0].slice(0,24))} →</span> `:'')+esc(it.form.split(',')[0].slice(0,30))+` <span style="color:#888">${fmt(it.s)}</span>`,{permanent:true,direction:'right',className:'spark',offset:[6,0]});it.lab=true}
+    else if(!wantLab&&it.lab){it.m.unbindTooltip();it.lab=false;it.hov()}
+  });
+  const cn=COUNTRY.filter(c=>y>=c[3]&&y<=c[4]);
+  document.getElementById('country').innerHTML=cn.length?'Armenia is named in Armenian records of this time as: '+cn.map(c=>`<a href="${esc(c[7])}" target="_blank" rel="noopener" title="${esc(c[6])}" style="color:var(--ink)"><b>${esc(c[1])}</b></a> <span style="color:var(--muted)">${esc(c[0])} · ${esc(c[2])}${c[5]!=='attested'?' ('+esc(c[5])+')':''}</span>`).join(' · '):'No Armenian-language name of the country is recorded yet in the sources used here.';
+  document.getElementById('year').textContent=fmt(Math.round(y));
+  document.getElementById('scrub').value=Math.round(y);
+  document.getElementById('count').textContent=`${act.length} names recorded now`;
+  const A=document.getElementById('active');
+  act.sort((a,b)=>b.s-a.s);
+  A.innerHTML=act.slice(0,80).map(it=>`<div data-i="${it.i}"><span class="sw" style="display:inline-block;background:${STC[it.st]||PAL[it.lang]||'#777'}"></span> ${esc(it.form)} <span class="l">${esc(it.lang)} · ${fmt(it.s)}${it.e0!==it.s?'–'+fmt(it.e0):''}</span></div>`).join('')+(act.length>80?`<div class="l">… and ${act.length-80} more</div>`:'')||'—';
+  A.querySelectorAll('div[data-i]').forEach(e=>e.onclick=()=>{const it=items[+e.dataset.i];map.flyTo([it.lat,it.lon],Math.max(map.getZoom(),8));it.m.openPopup()});
+}
+function set(y){year=Math.max(Y0,Math.min(Y1,y));update(true)}
+let acc=0;
+function loop(t){
+  const dt=(t-last)/1000;last=t;
+  if(playing){
+    acc+=dt;
+    if(acc>=3/speed){acc=0;step(10)}
+  }
+  requestAnimationFrame(loop);
+}
+function step(d){
+  let y=Math.round((year+d)/10)*10;
+  if(d>0&&document.getElementById('skip').checked&&dens){const b=(y-Y0)/10|0;if(!dens[b]){let k=b;while(k<dens.length&&!dens[k])k++;y=Y0+k*10}}
+  set(y); if(year>=Y1)toggle(false);
+}
+function toggle(p){playing=p;acc=0;document.getElementById('play').textContent=p?'❚❚ Pause':'▶ Play';document.getElementById('stop').disabled=!p;if(p&&year>=Y1)set(Y0)}
+document.getElementById('play').onclick=()=>toggle(!playing);
+document.getElementById('stop').onclick=()=>toggle(false);
+document.getElementById('back').onclick=()=>{toggle(false);step(-10)};
+document.getElementById('fwd').onclick=()=>{toggle(false);step(10)};
+document.getElementById('restart').onclick=()=>{toggle(false);set(Y0)};
+addEventListener('keydown',e=>{if(e.target.tagName==='SELECT'||e.target.tagName==='INPUT')return;
+  if(e.code==='Space'){e.preventDefault();toggle(!playing)} else if(e.key==='ArrowRight'){toggle(false);step(10)} else if(e.key==='ArrowLeft'){toggle(false);step(-10)} else if(e.key==='Escape'){toggle(false)}});
+document.getElementById('speed').onchange=e=>speed=+e.target.value;
+document.getElementById('scrub').oninput=e=>set(+e.target.value);
+addEventListener('resize',()=>D&&hist());
+</script>
+</body>
+</html>
